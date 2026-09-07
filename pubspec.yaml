@@ -1,0 +1,37 @@
+name: app_monitoring_smart_hydroponic_system
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Verdana
+      fonts:
+        - asset: assets/fonts/verdana.ttf
+        - asset: assets/fonts/verdanab.ttf
+          weight: 700
+        - asset: assets/fonts/verdanai.ttf
+          style: italic
+        - asset: assets/fonts/verdanaz.ttf
+          weight: 700
+          style: italic
+
+    - family: Urbanist
+      fonts:
+        - asset: assets/fonts/Urbanist-VariableFont_wght.ttf
+        - asset: assets/fonts/Urbanist-Italic-VariableFont_wght.ttf
+          style: italic
