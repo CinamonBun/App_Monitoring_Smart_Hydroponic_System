@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
+import '../services/hydroponic_service.dart';
 import '../widgets/dark_glass_card.dart';
 import '../widgets/light_card.dart';
 
@@ -92,116 +93,151 @@ class _HistoryScreenState extends State<HistoryScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final activeFilter = _filters[_selectedFilter];
-    final filteredLogs = activeFilter == 'Semua'
-        ? _logs
-        : _logs.where((l) => l.category == activeFilter).toList();
+    final service = HydroponicService.instance;
 
-    final bodyContent = SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(0, 70, 0, 120),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const Text(
-                    'Riwayat Monitoring',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
+    return ListenableBuilder(
+      listenable: service,
+      builder: (context, _) {
+        final activeFilter = _filters[_selectedFilter];
+
+        // Konversi log real-time dari API ke format tampilan _HistoryLogItem
+        final realItems = service.realHistoryLogs.map((log) {
+          final h = log.timestamp.hour.toString().padLeft(2, '0');
+          final m = log.timestamp.minute.toString().padLeft(2, '0');
+          return _HistoryLogItem(
+            title: log.title,
+            category: log.category,
+            time: 'Hari ini • $h:$m WIB',
+            description: log.description,
+            badgeText: log.badgeText,
+            badgeColor: service.isConnected
+                ? const Color(0xFF2E7D32)
+                : const Color(0xFFD97706),
+            icon: Icons.sensors_rounded,
+            iconColor: kWaterAccent,
+          );
+        }).toList();
+
+        final allLogs = [...realItems, ..._logs];
+        final filteredLogs = activeFilter == 'Semua'
+            ? allLogs
+            : allLogs.where((l) => l.category == activeFilter).toList();
+
+        final bodyContent = SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(0, 70, 0, 120),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Riwayat Monitoring',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Log sensor & riwayat otomatisasi sistem hidroponik',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Log sensor & riwayat otomatisasi sistem hidroponik',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.75),
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            DarkGlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                const SizedBox(height: 20),
+                DarkGlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(
-                            Icons.insights_rounded,
-                            color: Colors.white.withOpacity(0.9),
-                            size: 20,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.insights_rounded,
+                                color: Colors.white.withOpacity(0.9),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Rangkuman 24 Jam',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.95),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Rangkuman 24 Jam',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.95),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: (service.isConnected
+                                      ? const Color(0xFF2E7D32)
+                                      : const Color(0xFFD97706))
+                                  .withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: (service.isConnected
+                                        ? const Color(0xFF81C784)
+                                        : const Color(0xFFFBBF24))
+                                    .withOpacity(0.5),
+                              ),
+                            ),
+                            child: Text(
+                              service.isConnected ? 'Stabil' : 'Menunggu',
+                              style: TextStyle(
+                                color: service.isConnected
+                                    ? const Color(0xFFA5D6A7)
+                                    : const Color(0xFFFDE68A),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2E7D32).withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFF81C784).withOpacity(0.5),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSummaryColumn(
+                            'Suhu Rata-rata',
+                            service.hasData ? '${service.waterTemp}°C' : '27.8°C',
+                            service.hasData
+                                ? 'Min ${service.minTemp?.toStringAsFixed(1) ?? "24"}° / Max ${service.maxTemp?.toStringAsFixed(1) ?? "29"}°'
+                                : 'Min 24° / Max 29°',
                           ),
-                        ),
-                        child: const Text(
-                          'Stabil',
-                          style: TextStyle(
-                            color: Color(0xFFA5D6A7),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                          _buildSummaryDivider(),
+                          _buildSummaryColumn(
+                            'pH Rata-rata',
+                            service.hasData ? service.ph : '6.4',
+                            'Ideal (6.0 - 6.8)',
                           ),
-                        ),
+                          _buildSummaryDivider(),
+                          _buildSummaryColumn(
+                            'TDS Nutrisi',
+                            service.hasData ? '${service.tds} ppm' : '615 ppm',
+                            'Target Selada',
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildSummaryColumn(
-                        'Suhu Rata-rata',
-                        '27.8°C',
-                        'Min 24° / Max 29°',
-                      ),
-                      _buildSummaryDivider(),
-                      _buildSummaryColumn(
-                        'pH Rata-rata',
-                        '6.4',
-                        'Ideal (6.0 - 6.8)',
-                      ),
-                      _buildSummaryDivider(),
-                      _buildSummaryColumn(
-                        'TDS Nutrisi',
-                        '615 ppm',
-                        'Target Selada',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                ),
             const SizedBox(height: 20),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -391,6 +427,8 @@ class _HistoryScreenState extends State<HistoryScreen>
     }
 
     return bodyContent;
+      },
+    );
   }
 
   Widget _buildSummaryColumn(String title, String value, String subtitle) {
