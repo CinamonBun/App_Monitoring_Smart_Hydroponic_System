@@ -2,22 +2,58 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class HydroponicLogEntry {
+/// Snapshot data sensor pada satu titik waktu (real data dari API)
+class SensorSnapshot {
   final DateTime timestamp;
-  final String title;
-  final String description;
-  final String category;
-  final String badgeText;
+  final double temp;
+  final double ph;
+  final int tds;
+  final int waterLevel;
 
-  HydroponicLogEntry({
+  const SensorSnapshot({
     required this.timestamp,
-    required this.title,
-    required this.description,
-    required this.category,
-    required this.badgeText,
+    required this.temp,
+    required this.ph,
+    required this.tds,
+    required this.waterLevel,
   });
+
+  /// Status kondisi berdasarkan nilai sensor
+  String get condition {
+    if (ph < 5.5 || ph > 7.0 || temp > 30 || temp < 18) return 'Waspada';
+    if (waterLevel <= 25) return 'Kritis';
+    return 'Optimal';
+  }
+
+  Color get statusColor {
+    switch (condition) {
+      case 'Kritis':
+        return const Color(0xFFE53935);
+      case 'Waspada':
+        return const Color(0xFFD97706);
+      default:
+        return const Color(0xFF2E7D32);
+    }
+  }
+
+  /// Format waktu singkat (jam:menit)
+  String get timeLabel {
+    final h = timestamp.hour.toString().padLeft(2, '0');
+    final m = timestamp.minute.toString().padLeft(2, '0');
+    return '$h:$m WIB';
+  }
+
+  /// Format tanggal pendek (misal "22 Sep")
+  String get dateLabel {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    return '${timestamp.day} ${months[timestamp.month]}';
+  }
 }
 
 class HydroponicService extends ChangeNotifier {
@@ -48,9 +84,11 @@ class HydroponicService extends ChangeNotifier {
   double? maxTemp;
   double? minPh;
   double? maxPh;
+  int? minTds;
+  int? maxTds;
 
-  // Log riwayat data nyata yang masuk
-  final List<HydroponicLogEntry> realHistoryLogs = [];
+  /// Riwayat snapshot sensor real (terbaru di index 0), maks 200 entri
+  final List<SensorSnapshot> sensorHistory = [];
 
   Timer? _timer;
 
@@ -122,12 +160,18 @@ class HydroponicService extends ChangeNotifier {
             maxPh = (maxPh == null || pVal > maxPh!) ? pVal : maxPh;
           }
 
+          final int? tdsInt = int.tryParse(tds);
+          if (tdsInt != null) {
+            minTds = (minTds == null || tdsInt < minTds!) ? tdsInt : minTds;
+            maxTds = (maxTds == null || tdsInt > maxTds!) ? tdsInt : maxTds;
+          }
+
           hasData = true;
           isConnected = true;
           errorMessage = null;
 
-          // Catat ke daftar riwayat real data
-          _recordHistoryLog();
+          // Rekam snapshot sensor ke histori
+          _recordSnapshot();
         } else {
           errorMessage = "Format data_sensor tidak ditemukan dalam respons";
         }
@@ -151,21 +195,37 @@ class HydroponicService extends ChangeNotifier {
     }
   }
 
-  void _recordHistoryLog() {
-    // Tambahkan catatan sensor ke log riwayat
-    final newEntry = HydroponicLogEntry(
+  void _recordSnapshot() {
+    final tVal = double.tryParse(waterTemp) ?? 0.0;
+    final pVal = double.tryParse(ph) ?? 0.0;
+    final tdsVal = int.tryParse(tds) ?? 0;
+    final levelVal = int.tryParse(levelAir) ?? 0;
+
+    // Cegah duplikat: skip jika nilai identik dan baru direkam kurang dari 1 menit
+    if (sensorHistory.isNotEmpty) {
+      final last = sensorHistory.first;
+      final isIdentical = last.temp == tVal &&
+          last.ph == pVal &&
+          last.tds == tdsVal &&
+          last.waterLevel == levelVal;
+      final isRecent =
+          DateTime.now().difference(last.timestamp) < const Duration(minutes: 1);
+      if (isIdentical && isRecent) {
+        return;
+      }
+    }
+
+    final snapshot = SensorSnapshot(
       timestamp: DateTime.now(),
-      title: 'Sinkronisasi Sensor Realtime',
-      category: 'Sensor',
-      description:
-          'Suhu: $waterTemp°C | pH: $ph | TDS: $tds ppm | Level Air: $levelAir%',
-      badgeText: isConnected ? 'Online' : 'Offline',
+      temp: tVal,
+      ph: pVal,
+      tds: tdsVal,
+      waterLevel: levelVal,
     );
 
-    // Batasi maksimum 50 item riwayat
-    realHistoryLogs.insert(0, newEntry);
-    if (realHistoryLogs.length > 50) {
-      realHistoryLogs.removeLast();
+    sensorHistory.insert(0, snapshot);
+    if (sensorHistory.length > 200) {
+      sensorHistory.removeLast();
     }
   }
 

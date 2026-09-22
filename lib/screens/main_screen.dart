@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/floating_menu.dart';
 import 'dashboard_screen.dart';
 import 'history_screen.dart';
+import 'plant_age_screen.dart';
 import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -62,6 +63,7 @@ class _MainScreenState extends State<MainScreen> {
               },
               children: const [
                 DashboardScreen(),
+                PlantAgeScreen(),
                 HistoryScreen(),
                 ProfileScreen(),
               ],

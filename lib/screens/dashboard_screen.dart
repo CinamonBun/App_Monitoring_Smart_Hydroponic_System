@@ -135,7 +135,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     TextEditingController controller,
   ) {
     return ActionChip(
-      label: Text(label, style: const TextStyle(fontSize: 11, color: Colors.white)),
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 11, color: Colors.white),
+      ),
       backgroundColor: Colors.white.withOpacity(0.12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       onPressed: () => controller.text = url,
@@ -150,12 +153,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       listenable: _service,
       builder: (context, _) {
         final phVal = _service.phValue;
-        final tdsVal = _service.tdsValue;
+        final waterTempVal = _service.waterTempValue;
         final levelAirVal = _service.levelAirValue;
 
         // Hitung persentase progress untuk slider / progress bar
         final phProgress = (phVal / 14.0).clamp(0.0, 1.0);
-        final tdsProgress = (tdsVal / 1500.0).clamp(0.02, 1.0);
+        final waterTempProgress = (waterTempVal / 50.0).clamp(0.02, 1.0);
         final waterLevelProgress = (levelAirVal / 100.0).clamp(0.02, 1.0);
 
         return RefreshIndicator(
@@ -200,14 +203,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       color: _service.isConnected
                                           ? const Color(0xFF4CAF50)
                                           : (_service.isLoading
-                                              ? Colors.amber
-                                              : Colors.redAccent),
+                                                ? Colors.amber
+                                                : Colors.redAccent),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: (_service.isConnected
-                                                  ? const Color(0xFF4CAF50)
-                                                  : Colors.redAccent)
-                                              .withOpacity(0.5),
+                                          color:
+                                              (_service.isConnected
+                                                      ? const Color(0xFF4CAF50)
+                                                      : Colors.redAccent)
+                                                  .withOpacity(0.5),
                                           blurRadius: 6,
                                         ),
                                       ],
@@ -270,8 +274,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           strokeWidth: 2,
                                           valueColor:
                                               AlwaysStoppedAnimation<Color>(
-                                            Colors.white,
-                                          ),
+                                                Colors.white,
+                                              ),
                                         ),
                                       )
                                     : const Icon(
@@ -346,7 +350,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                     const SizedBox(height: 20),
 
-                    // ===== CARD 1: AVG WATER TEMPERATURE =====
+                    // ===== CARD 1: AVG TDS LEVEL =====
                     DarkGlassCard(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -355,7 +359,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Avg Water Temperature',
+                                'Avg TDS Level',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.95),
                                   fontSize: 16,
@@ -363,7 +367,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ),
                               Icon(
-                                Icons.thermostat,
+                                Icons.science,
                                 color: Colors.white.withOpacity(0.9),
                                 size: 20,
                               ),
@@ -379,13 +383,28 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
-                                '${_service.waterTemp}°C',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 52,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.0,
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _service.tds,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 52,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.0,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Text(
+                                  'ppm',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.7),
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                               const Spacer(),
@@ -414,9 +433,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    _service.maxTemp != null
-                                        ? '${_service.maxTemp!.toStringAsFixed(1)}°'
-                                        : '35°',
+                                    _service.maxTds != null
+                                        ? '${_service.maxTds}'
+                                        : '850',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -425,9 +444,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    _service.minTemp != null
-                                        ? '${_service.minTemp!.toStringAsFixed(1)}°'
-                                        : '20°',
+                                    _service.minTds != null
+                                        ? '${_service.minTds}'
+                                        : '500',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -520,8 +539,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                         color: const Color(0xFF567D91),
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color:
-                                              Colors.white.withOpacity(0.75),
+                                          color: Colors.white.withOpacity(0.75),
                                           width: 2.5,
                                         ),
                                       ),
@@ -599,7 +617,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   Text(
                                     _service.maxPh != null
                                         ? _service.maxPh!.toStringAsFixed(1)
-                                        : '8.5',
+                                        : '9.6',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -610,7 +628,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   Text(
                                     _service.minPh != null
                                         ? _service.minPh!.toStringAsFixed(1)
-                                        : '5.5',
+                                        : '6.0',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
@@ -627,11 +645,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                     const SizedBox(height: 20),
 
-                    // ===== CARD 3 & CARD 4: TDS & WATER LEVEL =====
+                    // ===== CARD 3 & CARD 4: WATER TEMP & WATER LEVEL =====
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Card TDS Level
+                        // Card Water Temp
                         Expanded(
                           child: LightCard(
                             padding: const EdgeInsets.all(18),
@@ -644,7 +662,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Icon(
-                                      Icons.science,
+                                      Icons.thermostat,
                                       color: kMutedDark,
                                       size: 20,
                                     ),
@@ -657,7 +675,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 const SizedBox(height: 12),
                                 const Text(
-                                  'TDS Level',
+                                  'Water Temp',
                                   style: TextStyle(
                                     color: kDarkText,
                                     fontSize: 14,
@@ -666,7 +684,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                                 const SizedBox(height: 16),
                                 MetricBar(
-                                  progress: tdsProgress,
+                                  progress: waterTempProgress,
                                   color: kWarnAmber,
                                   trackColor: const Color(0x14237497),
                                 ),
@@ -677,7 +695,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
                                       child: Text(
-                                        _service.tds,
+                                        _service.waterTemp,
                                         style: const TextStyle(
                                           color: kDarkText,
                                           fontSize: 30,
@@ -688,7 +706,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     ),
                                     const SizedBox(width: 4),
                                     const Text(
-                                      'ppm',
+                                      '°C',
                                       style: TextStyle(
                                         color: kMutedDark,
                                         fontSize: 13,

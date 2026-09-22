@@ -16,18 +16,19 @@ class FloatingMenu extends StatelessWidget {
 
   static const _items = [
     Icons.home_rounded,
+    Icons.eco_rounded,
     Icons.history_rounded,
     Icons.person_rounded,
   ];
 
   @override
   Widget build(BuildContext context) {
-    const double menuWidth = 250;
+    const double menuWidth = 300;
     const double horizontalPadding = 8;
     const double verticalPadding = 8;
     const double innerWidth = menuWidth - (horizontalPadding * 2);
-    const double itemWidth = innerWidth / 3;
-    const double indicatorWidth = 54;
+    final double itemWidth = innerWidth / _items.length;
+    const double indicatorWidth = 52;
     const double indicatorHeight = 44;
 
     final double indicatorLeft =
