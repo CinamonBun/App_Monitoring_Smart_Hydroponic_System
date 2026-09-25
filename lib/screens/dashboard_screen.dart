@@ -134,14 +134,28 @@ class _DashboardScreenState extends State<DashboardScreen>
     String url,
     TextEditingController controller,
   ) {
-    return ActionChip(
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 11, color: Colors.white),
+    return InkWell(
+      onTap: () => controller.text = url,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A5068),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: kWaterAccent.withValues(alpha: 0.4),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
-      backgroundColor: Colors.white.withOpacity(0.12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      onPressed: () => controller.text = url,
     );
   }
 

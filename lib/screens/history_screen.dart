@@ -20,6 +20,61 @@ class _HistoryScreenState extends State<HistoryScreen>
   bool get wantKeepAlive => true;
 
   bool _showWaterLevelAlert = false;
+  int _displayLimit = 15;
+
+  void _confirmClearHistory(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E3A4B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_sweep_rounded, color: Color(0xFFEF5350), size: 24),
+            SizedBox(width: 8),
+            Text(
+              'Hapus Riwayat',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Apakah Anda yakin ingin mengosongkan seluruh riwayat pembacaan sensor dari memori?',
+          style: TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF5350),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              HydroponicService.instance.clearHistory();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Riwayat pembacaan sensor berhasil dibersihkan'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+  }
 
   // Ambang batas dan peringatan water level (25%, 50%, 75%, 100%)
   final List<_WaterLevelThresholdInfo> _waterLevelAlerts = const [
@@ -388,12 +443,28 @@ class _HistoryScreenState extends State<HistoryScreen>
                         ),
                       ),
                       if (history.isNotEmpty)
-                        Text(
-                          '${history.length} entri',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 12,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '${history.length < _displayLimit ? history.length : _displayLimit} dari ${history.length} entri',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                fontSize: 11.5,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_sweep_outlined,
+                                color: Colors.white70,
+                                size: 20,
+                              ),
+                              tooltip: 'Bersihkan Riwayat',
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => _confirmClearHistory(context),
+                            ),
+                          ],
                         ),
                     ],
                   ),
@@ -401,8 +472,58 @@ class _HistoryScreenState extends State<HistoryScreen>
 
                   if (history.isEmpty)
                     _buildEmptyHistory()
-                  else
-                    for (final snap in history) _buildSnapshotCard(snap),
+                  else ...[
+                    for (final snap in history.take(_displayLimit))
+                      _buildSnapshotCard(snap),
+                    if (history.length > _displayLimit)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 6),
+                        child: Center(
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.35),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            icon: const Icon(Icons.expand_more_rounded, size: 18),
+                            label: Text(
+                              'Tampilkan Lebih Banyak (+15) • Sisa ${history.length - _displayLimit}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _displayLimit += 15;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    if (_displayLimit > 15 && history.length > 15)
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _displayLimit = 15;
+                            });
+                          },
+                          child: Text(
+                            'Ciutkan ke 15 data terbaru',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ],
               ),
             ),

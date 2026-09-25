@@ -49,8 +49,19 @@ class SensorSnapshot {
   /// Format tanggal pendek (misal "22 Sep")
   String get dateLabel {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
     return '${timestamp.day} ${months[timestamp.month]}';
   }
@@ -72,11 +83,10 @@ class HydroponicService extends ChangeNotifier {
   bool isConnected = false;
   bool hasData = false;
 
-  // URL API (default emulator Android, dapat diubah sesuai device/kebutuhan)
-  // kalau run menggunakan hp
-  // String apiUrl = "http://10.0.2.2:5000/api/hidroponik";
-
-  // kalau run menggunakan web
+  // URL API:
+  // - Web / Desktop / HP fisik (jika pakai "adb reverse tcp:5000 tcp:5000"): "http://127.0.0.1:5000/api/hidroponik"
+  // - Android Emulator: "http://10.0.2.2:5000/api/hidroponik"
+  // - HP Fisik via Wi-Fi: "http://<IP_LAPTOP>:5000/api/hidroponik" (misal: "http://192.168.1.10:5000/api/hidroponik")
   String apiUrl = "http://127.0.0.1:5000/api/hidroponik";
 
   // Nilai Min / Max terukur dari sensor
@@ -195,22 +205,39 @@ class HydroponicService extends ChangeNotifier {
     }
   }
 
+  /// Batas maksimal riwayat di RAM agar hemat memori HP
+  static const int _maxHistoryEntries = 60;
+
+  /// Interval minimum pencatatan normal jika tidak ada perubahan signifikan
+  static const Duration _minSnapshotInterval = Duration(minutes: 2);
+
+  /// Membersihkan seluruh riwayat pembacaan sensor dari RAM
+  void clearHistory() {
+    sensorHistory.clear();
+    notifyListeners();
+  }
+
   void _recordSnapshot() {
     final tVal = double.tryParse(waterTemp) ?? 0.0;
     final pVal = double.tryParse(ph) ?? 0.0;
     final tdsVal = int.tryParse(tds) ?? 0;
     final levelVal = int.tryParse(levelAir) ?? 0;
 
-    // Cegah duplikat: skip jika nilai identik dan baru direkam kurang dari 1 menit
     if (sensorHistory.isNotEmpty) {
       final last = sensorHistory.first;
-      final isIdentical = last.temp == tVal &&
-          last.ph == pVal &&
-          last.tds == tdsVal &&
-          last.waterLevel == levelVal;
-      final isRecent =
-          DateTime.now().difference(last.timestamp) < const Duration(minutes: 1);
-      if (isIdentical && isRecent) {
+      final timeDiff = DateTime.now().difference(last.timestamp);
+
+      // Deteksi perubahan signifikan (lonjakan / anomali sensor)
+      final tempDiff = (last.temp - tVal).abs();
+      final phDiff = (last.ph - pVal).abs();
+      final tdsDiff = (last.tds - tdsVal).abs();
+      final levelDiff = (last.waterLevel - levelVal).abs();
+
+      final bool hasSignificantChange =
+          tempDiff >= 1.0 || phDiff >= 0.3 || tdsDiff >= 50 || levelDiff >= 5;
+
+      // Lewati pencatatan jika belum melewati interval minimum dan tidak ada anomali
+      if (timeDiff < _minSnapshotInterval && !hasSignificantChange) {
         return;
       }
     }
@@ -224,7 +251,7 @@ class HydroponicService extends ChangeNotifier {
     );
 
     sensorHistory.insert(0, snapshot);
-    if (sensorHistory.length > 200) {
+    if (sensorHistory.length > _maxHistoryEntries) {
       sensorHistory.removeLast();
     }
   }
