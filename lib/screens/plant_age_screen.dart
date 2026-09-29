@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/colors.dart';
 import '../models/plant_slot_model.dart';
+import '../services/plant_storage_service.dart';
 import '../widgets/dark_glass_card.dart';
 import '../widgets/light_card.dart';
 
@@ -85,47 +86,20 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
   @override
   void initState() {
     super.initState();
-    _plantSlots = [
-      PlantSlot(
-        id: 'slot_1',
-        slotName: 'Modul 1 • Talang A',
-        plantName: 'Selada Butterhead',
-        ageDays: 30, // Contoh 30 hari sesuai permintaan pengguna
-        harvestTargetDays: 42,
-        variety: 'Grand Rapids',
-        notes: 'Pertumbuhan daun sangat rimbun, nutrisi 620 ppm stabil.',
-      ),
-      PlantSlot(
-        id: 'slot_2',
-        slotName: 'Modul 2 • Talang B',
-        plantName: 'Pakcoy Hijau',
-        ageDays: 24,
-        harvestTargetDays: 35,
-        variety: 'Nauli F1',
-        notes: 'Batang mulai menebal dan warna daun hijau segar merata.',
-      ),
-      PlantSlot(
-        id: 'slot_3',
-        slotName: 'Modul 3 • Talang C',
-        plantName: 'Kangkung Hidroponik',
-        ageDays: 18,
-        harvestTargetDays: 25,
-        variety: 'Bangkok LP-1',
-        notes: 'Laju penyerapan air tinggi, sirkulasi aerasi optimal.',
-      ),
-      PlantSlot(
-        id: 'slot_4',
-        slotName: 'Modul 4 • Talang D',
-        plantName: 'Bayam Merah',
-        ageDays: 14,
-        harvestTargetDays: 28,
-        variety: 'Mira Red',
-        notes: 'Fase vegetatif awal, paparan sinar matahari greenhouse cukup.',
-      ),
-    ];
+    _plantSlots = PlantStorageService.getDefaultSlots();
+    _loadStoredSlots();
   }
 
-  // Dialog / BottomSheet untuk mengedit tanaman dan umurnya
+  Future<void> _loadStoredSlots() async {
+    final slots = await PlantStorageService.loadPlantSlots();
+    if (mounted) {
+      setState(() {
+        _plantSlots = slots;
+      });
+    }
+  }
+
+  // Dialog / BottomSheet untuk mengedit tanaman, tanggal tanam, dan umurnya
   void _showEditPlantDialog(int index) {
     final slot = _plantSlots[index];
 
@@ -133,6 +107,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
     final varietyController = TextEditingController(text: slot.variety);
     final notesController = TextEditingController(text: slot.notes);
 
+    DateTime currentPlantingDate = slot.plantingDate;
     int currentAge = slot.ageDays;
     int currentTarget = slot.harvestTargetDays;
 
@@ -143,6 +118,13 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            String formatShortDate(DateTime d) {
+              const months = [
+                '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+              ];
+              return '${d.day} ${months[d.month]} ${d.year}';
+            }
+
             return Container(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom + 20,
@@ -185,7 +167,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
-                                Icons.edit_note_rounded,
+                                Icons.edit_calendar_rounded,
                                 color: Colors.white,
                                 size: 22,
                               ),
@@ -195,7 +177,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'Edit Tanaman & Umur',
+                                  'Edit Tanaman & Siklus',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 17,
@@ -203,7 +185,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                   ),
                                 ),
                                 Text(
-                                  slot.slotName,
+                                  '${slot.slotName} • Sinkron Kalender Otomatis',
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.7),
                                     fontSize: 12,
@@ -313,6 +295,184 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
 
                     const SizedBox(height: 12),
 
+                    // Pengaturan Tanggal Mulai Tanam (Planting Date)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_today_rounded,
+                                    color: Color(0xFF81C784),
+                                    size: 15,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Tanggal Mulai Tanam',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Tombol Pilih Tanggal dari Kalender
+                              InkWell(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: currentPlantingDate,
+                                    firstDate: DateTime.now().subtract(
+                                      const Duration(days: 365),
+                                    ),
+                                    lastDate: DateTime.now(),
+                                    builder: (context, child) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: const ColorScheme.dark(
+                                            primary: Color(0xFF2E7D32),
+                                            onPrimary: Colors.white,
+                                            surface: Color(0xFF1E3A4B),
+                                            onSurface: Colors.white,
+                                          ),
+                                        ),
+                                        child: child!,
+                                      );
+                                    },
+                                  );
+
+                                  if (picked != null) {
+                                    setModalState(() {
+                                      currentPlantingDate = picked;
+                                      final now = DateTime.now();
+                                      final today = DateTime(
+                                        now.year,
+                                        now.month,
+                                        now.day,
+                                      );
+                                      final pDay = DateTime(
+                                        picked.year,
+                                        picked.month,
+                                        picked.day,
+                                      );
+                                      final diff =
+                                          today.difference(pDay).inDays;
+                                      currentAge = diff < 0 ? 0 : diff;
+                                    });
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2E7D32)
+                                        .withValues(alpha: 0.35),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: const Color(0xFF81C784)
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit_calendar_rounded,
+                                        color: Colors.white,
+                                        size: 13,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Ubah Tanggal',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                formatShortDate(currentPlantingDate),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              // Tombol Cepat: Tanam Baru Hari Ini
+                              InkWell(
+                                onTap: () {
+                                  setModalState(() {
+                                    final now = DateTime.now();
+                                    currentPlantingDate = DateTime(
+                                      now.year,
+                                      now.month,
+                                      now.day,
+                                    );
+                                    currentAge = 0;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(6),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Tanam Hari Ini (Reset)',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Umur akan bertambah 1 hari otomatis setiap pukul 00:00',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 10.5,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
                     // Baris Pengaturan Umur & Target Panen
                     Row(
                       children: [
@@ -347,7 +507,17 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                       icon: Icons.remove,
                                       onTap: () {
                                         if (currentAge > 0) {
-                                          setModalState(() => currentAge--);
+                                          setModalState(() {
+                                            currentAge--;
+                                            final now = DateTime.now();
+                                            currentPlantingDate = DateTime(
+                                              now.year,
+                                              now.month,
+                                              now.day,
+                                            ).subtract(
+                                              Duration(days: currentAge),
+                                            );
+                                          });
                                         }
                                       },
                                     ),
@@ -362,7 +532,17 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                     _buildCircleButton(
                                       icon: Icons.add,
                                       onTap: () {
-                                        setModalState(() => currentAge++);
+                                        setModalState(() {
+                                          currentAge++;
+                                          final now = DateTime.now();
+                                          currentPlantingDate = DateTime(
+                                            now.year,
+                                            now.month,
+                                            now.day,
+                                          ).subtract(
+                                            Duration(days: currentAge),
+                                          );
+                                        });
                                       },
                                     ),
                                   ],
@@ -465,23 +645,32 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                           ),
                           elevation: 0,
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           final updatedName = nameController.text.trim().isEmpty
                               ? slot.plantName
                               : nameController.text.trim();
 
+                          final updatedSlot = slot.copyWith(
+                            plantName: updatedName,
+                            plantingDate: currentPlantingDate,
+                            harvestTargetDays: currentTarget,
+                            variety: varietyController.text.trim(),
+                            notes: notesController.text.trim(),
+                          );
+
                           setState(() {
-                            _plantSlots[index] = slot.copyWith(
-                              plantName: updatedName,
-                              ageDays: currentAge,
-                              harvestTargetDays: currentTarget,
-                              variety: varietyController.text.trim(),
-                              notes: notesController.text.trim(),
-                            );
+                            _plantSlots[index] = updatedSlot;
                           });
 
-                          Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          final messenger = ScaffoldMessenger.of(context);
+                          final navigator = Navigator.of(ctx);
+
+                          // Simpan ke SharedPreferences secara permanen
+                          await PlantStorageService.savePlantSlots(_plantSlots);
+
+                          navigator.pop();
+
+                          messenger.showSnackBar(
                             SnackBar(
                               backgroundColor: const Color(0xFF1E3A4B),
                               behavior: SnackBarBehavior.floating,
@@ -489,7 +678,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               content: Text(
-                                '${slot.slotName} berhasil diperbarui: $updatedName ($currentAge Hari)',
+                                '${slot.slotName} berhasil disimpan: $updatedName (${updatedSlot.ageDays} Hari)',
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ),
@@ -618,6 +807,9 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
         .map((s) => s.daysLeft)
         .reduce((a, b) => a < b ? a : b);
 
+    // Hitung berapa modul yang siap panen
+    final readyCount = _plantSlots.where((s) => s.isReadyToHarvest).length;
+
     final bodyContent = SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 64, 18, 120),
       child: Center(
@@ -640,7 +832,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Pantau siklus & estimasi panen 4 modul hidroponik',
+                      'Hitung otomatis harian & estimasi panen 4 modul',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 13,
@@ -664,13 +856,13 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                         const Row(
                           children: [
                             Icon(
-                              Icons.inventory_2_rounded,
+                              Icons.sync_rounded,
                               color: Colors.white,
                               size: 16,
                             ),
                             SizedBox(width: 6),
                             Text(
-                              'Status 4 Modul Instalasi',
+                              'Sinkron Kalender Harian',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13.5,
@@ -693,9 +885,11 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                   .withValues(alpha: 0.5),
                             ),
                           ),
-                          child: const Text(
-                            '4 Modul Aktif',
-                            style: TextStyle(
+                          child: Text(
+                            readyCount > 0
+                                ? '$readyCount Siap Panen 🎉'
+                                : '4 Modul Aktif',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
@@ -747,7 +941,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                     ),
                   ),
                   Text(
-                    'Ketuk kartu untuk edit',
+                    'Ketuk kartu untuk ubah',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 11.5,
@@ -758,7 +952,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
 
               const SizedBox(height: 12),
 
-              // ===== 4 CARD TANAMAN (DAPAT DI-EDIT) =====
+              // ===== 4 CARD TANAMAN (DAPAT DI-EDIT & TERHUBUNG TANGGAL) =====
               for (var i = 0; i < _plantSlots.length; i++)
                 _buildPlantCard(slot: _plantSlots[i], index: i),
             ],
@@ -912,7 +1106,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                       ],
                     ),
                   ),
-                  // Angka Umur Tanaman (Misal 30 Hari)
+                  // Angka Umur Tanaman (Dihitung Otomatis dari plantingDate)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -951,7 +1145,60 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
+
+              // Detail Tanggal Tanam & Estimasi Panen
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7FBFD),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE5F1F6)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 12,
+                          color: Color(0xFF2E7D32),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Tanam: ${slot.formattedPlantingDate}',
+                          style: TextStyle(
+                            color: kMutedDark.withValues(alpha: 0.85),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.event_available_rounded,
+                          size: 13,
+                          color: Color(0xFF0288D1),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Panen: ${slot.formattedHarvestDate}',
+                          style: TextStyle(
+                            color: kMutedDark.withValues(alpha: 0.85),
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
 
               // Progress Bar Umur Menuju Panen
               Column(
@@ -1017,12 +1264,23 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'ID: #${slot.id.toUpperCase()}',
-                    style: TextStyle(
-                      color: kMutedDark.withValues(alpha: 0.5),
-                      fontSize: 10.5,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule_rounded,
+                        size: 13,
+                        color: Color(0xFF2E7D32),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Otomatis +1 hari/hari',
+                        style: TextStyle(
+                          color: kMutedDark.withValues(alpha: 0.6),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     children: [

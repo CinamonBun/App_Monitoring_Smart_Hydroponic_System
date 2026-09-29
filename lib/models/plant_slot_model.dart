@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// Model untuk data satu slot/modul tanaman hidroponik
+/// Model untuk data satu slot/modul tanaman hidroponik.
+/// Umur tanaman dihitung otomatis berdasarkan tanggal tanam (plantingDate).
 class PlantSlot {
   final String id;
   final String slotName;
   final String plantName;
-  final int ageDays;
+  final DateTime plantingDate;
   final int harvestTargetDays;
   final String variety;
   final String notes;
@@ -14,29 +15,109 @@ class PlantSlot {
     required this.id,
     required this.slotName,
     required this.plantName,
-    required this.ageDays,
+    DateTime? plantingDate,
+    int? initialAgeDays,
     required this.harvestTargetDays,
     this.variety = '',
     this.notes = '',
-  });
+  }) : plantingDate = plantingDate ??
+            DateTime.now().subtract(Duration(days: initialAgeDays ?? 0));
+
+  /// Menghitung umur tanaman dalam hari berdasarkan selisih tanggal kalender dengan hari ini.
+  /// Otomatis bertambah 1 hari setiap kali jam berganti melewati pukul 00:00 (hari baru).
+  int get ageDays {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final planted = DateTime(plantingDate.year, plantingDate.month, plantingDate.day);
+    final diff = today.difference(planted).inDays;
+    return diff < 0 ? 0 : diff;
+  }
+
+  /// Tanggal perkiraan panen berdasarkan tanggal tanam + target hari panen
+  DateTime get estimatedHarvestDate {
+    return plantingDate.add(Duration(days: harvestTargetDays));
+  }
+
+  /// Format tanggal tanam (misal: "28 Agu 2026")
+  String get formattedPlantingDate {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    return '${plantingDate.day} ${months[plantingDate.month]} ${plantingDate.year}';
+  }
+
+  /// Format tanggal panen (misal: "10 Okt 2026")
+  String get formattedHarvestDate {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+    final hDate = estimatedHarvestDate;
+    return '${hDate.day} ${months[hDate.month]} ${hDate.year}';
+  }
 
   PlantSlot copyWith({
     String? id,
     String? slotName,
     String? plantName,
+    DateTime? plantingDate,
     int? ageDays,
     int? harvestTargetDays,
     String? variety,
     String? notes,
   }) {
+    DateTime? resolvedPlantingDate = plantingDate;
+    // Jika ageDays diberikan langsung saat edit, hitung mundur tanggal tanamnya
+    if (resolvedPlantingDate == null && ageDays != null) {
+      final now = DateTime.now();
+      resolvedPlantingDate = DateTime(now.year, now.month, now.day)
+          .subtract(Duration(days: ageDays));
+    }
+
     return PlantSlot(
       id: id ?? this.id,
       slotName: slotName ?? this.slotName,
       plantName: plantName ?? this.plantName,
-      ageDays: ageDays ?? this.ageDays,
+      plantingDate: resolvedPlantingDate ?? this.plantingDate,
       harvestTargetDays: harvestTargetDays ?? this.harvestTargetDays,
       variety: variety ?? this.variety,
       notes: notes ?? this.notes,
+    );
+  }
+
+  /// Serialisasi ke Map JSON untuk disimpan ke SharedPreferences
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'slotName': slotName,
+      'plantName': plantName,
+      'plantingDate': plantingDate.toIso8601String(),
+      'harvestTargetDays': harvestTargetDays,
+      'variety': variety,
+      'notes': notes,
+    };
+  }
+
+  /// Deserialisasi dari Map JSON
+  factory PlantSlot.fromJson(Map<String, dynamic> json) {
+    DateTime parsedDate;
+    if (json['plantingDate'] != null) {
+      parsedDate = DateTime.tryParse(json['plantingDate'] as String) ?? DateTime.now();
+    } else if (json['ageDays'] != null) {
+      final days = json['ageDays'] as int;
+      final now = DateTime.now();
+      parsedDate = DateTime(now.year, now.month, now.day).subtract(Duration(days: days));
+    } else {
+      parsedDate = DateTime.now();
+    }
+
+    return PlantSlot(
+      id: json['id'] as String? ?? 'slot_${DateTime.now().millisecondsSinceEpoch}',
+      slotName: json['slotName'] as String? ?? 'Modul',
+      plantName: json['plantName'] as String? ?? 'Tanaman',
+      plantingDate: parsedDate,
+      harvestTargetDays: json['harvestTargetDays'] as int? ?? 30,
+      variety: json['variety'] as String? ?? '',
+      notes: json['notes'] as String? ?? '',
     );
   }
 
