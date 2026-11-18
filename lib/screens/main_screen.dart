@@ -4,7 +4,6 @@ import '../widgets/floating_menu.dart';
 import 'dashboard_screen.dart';
 import 'history_screen.dart';
 import 'plant_age_screen.dart';
-import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,19 +12,32 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen>
+    with SingleTickerProviderStateMixin {
   int _menuIndex = 0;
   late final PageController _pageController;
+  late final AnimationController _entranceController;
+  late final Animation<double> _entranceFadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _menuIndex);
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _entranceFadeAnimation = CurvedAnimation(
+      parent: _entranceController,
+      curve: Curves.easeOutCubic,
+    );
+    _entranceController.forward();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _entranceController.dispose();
     super.dispose();
   }
 
@@ -52,33 +64,35 @@ class _MainScreenState extends State<MainScreen> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                if (_menuIndex != index) {
-                  setState(() => _menuIndex = index);
-                }
-              },
-              children: const [
-                DashboardScreen(),
-                PlantAgeScreen(),
-                HistoryScreen(),
-                ProfileScreen(),
-              ],
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 28),
-                child: FloatingMenu(
-                  selectedIndex: _menuIndex,
-                  onSelect: _onMenuSelect,
+        body: FadeTransition(
+          opacity: _entranceFadeAnimation,
+          child: Stack(
+            children: [
+              PageView(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  if (_menuIndex != index) {
+                    setState(() => _menuIndex = index);
+                  }
+                },
+                children: const [
+                  DashboardScreen(),
+                  PlantAgeScreen(),
+                  HistoryScreen(),
+                ],
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  child: FloatingMenu(
+                    selectedIndex: _menuIndex,
+                    onSelect: _onMenuSelect,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

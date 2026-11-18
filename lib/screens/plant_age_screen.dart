@@ -120,7 +120,19 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
           builder: (context, setModalState) {
             String formatShortDate(DateTime d) {
               const months = [
-                '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+                '',
+                'Jan',
+                'Feb',
+                'Mar',
+                'Apr',
+                'Mei',
+                'Jun',
+                'Jul',
+                'Agu',
+                'Sep',
+                'Okt',
+                'Nov',
+                'Des',
               ];
               return '${d.day} ${months[d.month]} ${d.year}';
             }
@@ -322,7 +334,9 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                   Text(
                                     'Tanggal Mulai Tanam',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.85),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.85,
+                                      ),
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -368,8 +382,9 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                         picked.month,
                                         picked.day,
                                       );
-                                      final diff =
-                                          today.difference(pDay).inDays;
+                                      final diff = today
+                                          .difference(pDay)
+                                          .inDays;
                                       currentAge = diff < 0 ? 0 : diff;
                                     });
                                   }
@@ -449,7 +464,9 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                   child: Text(
                                     'Tanam Hari Ini (Reset)',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       fontSize: 10.5,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -510,13 +527,14 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                           setModalState(() {
                                             currentAge--;
                                             final now = DateTime.now();
-                                            currentPlantingDate = DateTime(
-                                              now.year,
-                                              now.month,
-                                              now.day,
-                                            ).subtract(
-                                              Duration(days: currentAge),
-                                            );
+                                            currentPlantingDate =
+                                                DateTime(
+                                                  now.year,
+                                                  now.month,
+                                                  now.day,
+                                                ).subtract(
+                                                  Duration(days: currentAge),
+                                                );
                                           });
                                         }
                                       },
@@ -535,13 +553,14 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
                                         setModalState(() {
                                           currentAge++;
                                           final now = DateTime.now();
-                                          currentPlantingDate = DateTime(
-                                            now.year,
-                                            now.month,
-                                            now.day,
-                                          ).subtract(
-                                            Duration(days: currentAge),
-                                          );
+                                          currentPlantingDate =
+                                              DateTime(
+                                                now.year,
+                                                now.month,
+                                                now.day,
+                                              ).subtract(
+                                                Duration(days: currentAge),
+                                              );
                                         });
                                       },
                                     ),
@@ -811,10 +830,10 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
     final readyCount = _plantSlots.where((s) => s.isReadyToHarvest).length;
 
     final bodyContent = SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(18, 64, 18, 120),
+      padding: const EdgeInsets.fromLTRB(20, 64, 20, 120),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: const BoxConstraints(maxWidth: 340),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -846,6 +865,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
 
               // ===== KARTU RINGKASAN SISTEM =====
               DarkGlassCard(
+                width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1009,6 +1029,7 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
         onTap: () => _showEditPlantDialog(index),
         borderRadius: BorderRadius.circular(16),
         child: LightCard(
+          width: double.infinity,
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1149,7 +1170,10 @@ class _PlantAgeScreenState extends State<PlantAgeScreen>
 
               // Detail Tanggal Tanam & Estimasi Panen
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7FBFD),
                   borderRadius: BorderRadius.circular(8),

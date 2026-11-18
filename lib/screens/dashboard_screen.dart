@@ -184,7 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             padding: const EdgeInsets.fromLTRB(20, 64, 20, 120),
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 380),
+                constraints: const BoxConstraints(maxWidth: 340),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -660,150 +660,153 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 20),
 
                     // ===== CARD 3 & CARD 4: WATER TEMP & WATER LEVEL =====
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Card Water Temp
-                        Expanded(
-                          child: LightCard(
-                            padding: const EdgeInsets.all(18),
-                            color: const Color(0xFFF4FBFF),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Icon(
-                                      Icons.thermostat,
-                                      color: kMutedDark,
-                                      size: 20,
-                                    ),
-                                    Icon(
-                                      Icons.sync,
-                                      color: kMutedDark,
-                                      size: 16,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'Water Temp',
-                                  style: TextStyle(
-                                    color: kDarkText,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                    SizedBox(
+                      width: 340,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Card Water Temp
+                          Expanded(
+                            child: LightCard(
+                              padding: const EdgeInsets.all(18),
+                              color: const Color(0xFFF4FBFF),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Icon(
+                                        Icons.thermostat,
+                                        color: kMutedDark,
+                                        size: 20,
+                                      ),
+                                      Icon(
+                                        Icons.sync,
+                                        color: kMutedDark,
+                                        size: 16,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                MetricBar(
-                                  progress: waterTempProgress,
-                                  color: kWarnAmber,
-                                  trackColor: const Color(0x14237497),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        _service.waterTemp,
-                                        style: const TextStyle(
-                                          color: kDarkText,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w600,
-                                          height: 1.0,
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Water Temp',
+                                    style: TextStyle(
+                                      color: kDarkText,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  MetricBar(
+                                    progress: waterTempProgress,
+                                    color: kWarnAmber,
+                                    trackColor: const Color(0x14237497),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          _service.waterTemp,
+                                          style: const TextStyle(
+                                            color: kDarkText,
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.0,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text(
-                                      '°C',
-                                      style: TextStyle(
-                                        color: kMutedDark,
-                                        fontSize: 13,
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        '°C',
+                                        style: TextStyle(
+                                          color: kMutedDark,
+                                          fontSize: 13,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 14),
+                          const SizedBox(width: 14),
 
-                        // Card Water Level
-                        Expanded(
-                          child: LightCard(
-                            padding: const EdgeInsets.all(18),
-                            color: const Color(0xFFF4FBFF),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Icon(
-                                      Icons.water,
-                                      color: kMutedDark,
-                                      size: 20,
-                                    ),
-                                    Icon(
-                                      Icons.sync,
-                                      color: kMutedDark,
-                                      size: 16,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                const Text(
-                                  'Water Level',
-                                  style: TextStyle(
-                                    color: kDarkText,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                          // Card Water Level
+                          Expanded(
+                            child: LightCard(
+                              padding: const EdgeInsets.all(18),
+                              color: const Color(0xFFF4FBFF),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Icon(
+                                        Icons.water,
+                                        color: kMutedDark,
+                                        size: 20,
+                                      ),
+                                      Icon(
+                                        Icons.sync,
+                                        color: kMutedDark,
+                                        size: 16,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                MetricBar(
-                                  progress: waterLevelProgress,
-                                  color: kWaterAccent,
-                                  trackColor: const Color(0x14237497),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        _service.levelAir,
-                                        style: const TextStyle(
-                                          color: kDarkText,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w600,
-                                          height: 1.0,
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Water Level',
+                                    style: TextStyle(
+                                      color: kDarkText,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  MetricBar(
+                                    progress: waterLevelProgress,
+                                    color: kWaterAccent,
+                                    trackColor: const Color(0x14237497),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          _service.levelAir,
+                                          style: const TextStyle(
+                                            color: kDarkText,
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.0,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text(
-                                      '%',
-                                      style: TextStyle(
-                                        color: kMutedDark,
-                                        fontSize: 13,
+                                      const SizedBox(width: 4),
+                                      const Text(
+                                        '%',
+                                        style: TextStyle(
+                                          color: kMutedDark,
+                                          fontSize: 13,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),

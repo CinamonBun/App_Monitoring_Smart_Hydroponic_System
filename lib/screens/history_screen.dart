@@ -30,7 +30,11 @@ class _HistoryScreenState extends State<HistoryScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.delete_sweep_rounded, color: Color(0xFFEF5350), size: 24),
+            Icon(
+              Icons.delete_sweep_rounded,
+              color: Color(0xFFEF5350),
+              size: 24,
+            ),
             SizedBox(width: 8),
             Text(
               'Hapus Riwayat',
@@ -64,7 +68,9 @@ class _HistoryScreenState extends State<HistoryScreen>
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Riwayat pembacaan sensor berhasil dibersihkan'),
+                  content: Text(
+                    'Riwayat pembacaan sensor berhasil dibersihkan',
+                  ),
                   duration: Duration(seconds: 2),
                 ),
               );
@@ -81,40 +87,32 @@ class _HistoryScreenState extends State<HistoryScreen>
     _WaterLevelThresholdInfo(
       thresholdPercent: 25,
       title: 'Peringatan Air Kritis (≤ 25%)',
-      description:
-          'Volume air bak hampir habis. Pompa berisiko rusak (dry-running) dan akar selada kekurangan nutrisi.',
-      recommendation:
-          'Segera isi tandon dengan air baku dan tambahkan larutan nutrisi AB Mix.',
+      description: 'Volume air bak hampir habis. Pompa berisiko rusak (dry-running) dan akar selada kekurangan nutrisi.',
+      recommendation: 'Segera isi tandon dengan air baku dan tambahkan larutan nutrisi AB Mix.',
       icon: Icons.warning_amber_rounded,
       primaryColor: Color(0xFFE53935),
     ),
     _WaterLevelThresholdInfo(
       thresholdPercent: 50,
       title: 'Peringatan Air Menipis (50%)',
-      description:
-          'Volume air tersisa separuh (50%). Penguapan siang hari mempercepat penurunan air.',
-      recommendation:
-          'Siapkan air cadangan dan pantau nilai PPM nutrisi agar tidak terlalu pekat.',
+      description: 'Volume air tersisa separuh (50%). Penguapan siang hari mempercepat penurunan air.',
+      recommendation: 'Siapkan air cadangan dan pantau nilai PPM nutrisi agar tidak terlalu pekat.',
       icon: Icons.report_problem_rounded,
       primaryColor: Color(0xFFE65100),
     ),
     _WaterLevelThresholdInfo(
       thresholdPercent: 75,
       title: 'Status Air Optimal (75%)',
-      description:
-          'Ketinggian air ideal. Aliran nutrisi dan kadar oksigen terlarut sangat baik.',
-      recommendation:
-          'Kondisi optimal. Pertahankan sirkulasi rutin dan pemantauan berkala.',
+      description: 'Ketinggian air ideal. Aliran nutrisi dan kadar oksigen terlarut sangat baik.',
+      recommendation: 'Kondisi optimal. Pertahankan sirkulasi rutin dan pemantauan berkala.',
       icon: Icons.water_drop_rounded,
       primaryColor: Color(0xFF0288D1),
     ),
     _WaterLevelThresholdInfo(
       thresholdPercent: 100,
       title: 'Status Air Penuh (100%)',
-      description:
-          'Bak penampungan terisi penuh (100%). Menambah air berisiko menyebabkan luapan.',
-      recommendation:
-          'Hentikan pengisian air segera dan pastikan pipa pembuangan (overflow) aman.',
+      description: 'Bak penampungan terisi penuh (100%). Menambah air berisiko menyebabkan luapan.',
+      recommendation: 'Hentikan pengisian air segera dan pastikan pipa pembuangan (overflow) aman.',
       icon: Icons.check_circle_outline_rounded,
       primaryColor: Color(0xFF2E7D32),
     ),
@@ -141,30 +139,30 @@ class _HistoryScreenState extends State<HistoryScreen>
         final double avgTemp = history.isEmpty
             ? 0
             : history.map((e) => e.temp).reduce((a, b) => a + b) /
-                history.length;
+                  history.length;
         final double avgPh = history.isEmpty
             ? 0
-            : history.map((e) => e.ph).reduce((a, b) => a + b) /
-                history.length;
+            : history.map((e) => e.ph).reduce((a, b) => a + b) / history.length;
         final double avgTds = history.isEmpty
             ? 0
             : history.map((e) => e.tds.toDouble()).reduce((a, b) => a + b) /
-                history.length;
+                  history.length;
         final double avgWaterLevel = history.isEmpty
             ? 0
             : history
-                    .map((e) => e.waterLevel.toDouble())
-                    .reduce((a, b) => a + b) /
-                history.length;
+                      .map((e) => e.waterLevel.toDouble())
+                      .reduce((a, b) => a + b) /
+                  history.length;
 
-        final int activeWaterLevel =
-            service.hasData ? service.levelAirValue : avgWaterLevel.round();
+        final int activeWaterLevel = service.hasData
+            ? service.levelAirValue
+            : avgWaterLevel.round();
 
         final bodyContent = SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 64, 18, 120),
+          padding: const EdgeInsets.fromLTRB(20, 64, 20, 120),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
+              constraints: const BoxConstraints(maxWidth: 340),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -198,6 +196,7 @@ class _HistoryScreenState extends State<HistoryScreen>
 
                   // KARTU DATA SENSOR SEKARANG (REAL-TIME)
                   DarkGlassCard(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,8 +233,8 @@ class _HistoryScreenState extends State<HistoryScreen>
                               history.isNotEmpty
                                   ? history.first.timeLabel
                                   : (service.hasData
-                                      ? service.waktuUpdate
-                                      : '--:-- WIB'),
+                                        ? service.waktuUpdate
+                                        : '--:-- WIB'),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.6),
                                 fontSize: 11.5,
@@ -294,9 +293,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                                   title: 'Kadar Asam (pH)',
                                   value: service.phValue.toStringAsFixed(1),
                                   statusText: _phStatus(service.phValue),
-                                  statusColor: _phStatusColor(
-                                    service.phValue,
-                                  ),
+                                  statusColor: _phStatusColor(service.phValue),
                                 ),
                               ),
                             ],
@@ -343,6 +340,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   // KARTU RATA-RATA SESI INI (hanya tampil jika ada >= 2 data)
                   if (history.length >= 2) ...[
                     DarkGlassCard(
+                      width: double.infinity,
                       padding: const EdgeInsets.all(18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,9 +422,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   ],
 
                   // DROPDOWN NOTIFIKASI WATER LEVEL
-                  _buildWaterLevelDropdown(
-                    activeWaterLevel: activeWaterLevel,
-                  ),
+                  _buildWaterLevelDropdown(activeWaterLevel: activeWaterLevel),
 
                   const SizedBox(height: 22),
 
@@ -493,7 +489,10 @@ class _HistoryScreenState extends State<HistoryScreen>
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            icon: const Icon(Icons.expand_more_rounded, size: 18),
+                            icon: const Icon(
+                              Icons.expand_more_rounded,
+                              size: 18,
+                            ),
                             label: Text(
                               'Tampilkan Lebih Banyak (+15) • Sisa ${history.length - _displayLimit}',
                               style: const TextStyle(fontSize: 12),
@@ -578,6 +577,7 @@ class _HistoryScreenState extends State<HistoryScreen>
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: LightCard(
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -682,6 +682,7 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   Widget _buildEmptyHistory() {
     return LightCard(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       child: Center(
         child: Column(
@@ -926,6 +927,7 @@ class _HistoryScreenState extends State<HistoryScreen>
         if (_showWaterLevelAlert) ...[
           const SizedBox(height: 10),
           LightCard(
+            width: double.infinity,
             padding: const EdgeInsets.all(14),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -936,11 +938,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                     color: alert.primaryColor.withValues(alpha: 0.14),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    alert.icon,
-                    color: alert.primaryColor,
-                    size: 20,
-                  ),
+                  child: Icon(alert.icon, color: alert.primaryColor, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -966,8 +964,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color:
-                                  alert.primaryColor.withValues(alpha: 0.12),
+                              color: alert.primaryColor.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
