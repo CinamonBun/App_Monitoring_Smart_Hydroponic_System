@@ -87,7 +87,7 @@ class HydroponicService extends ChangeNotifier {
   // - Web / Desktop / HP fisik (jika pakai "adb reverse tcp:5000 tcp:5000"): "http://127.0.0.1:5000/api/hidroponik"
   // - Android Emulator: "http://10.0.2.2:5000/api/hidroponik"
   // - HP Fisik via Wi-Fi: "http://<IP_LAPTOP>:5000/api/hidroponik" (misal: "http://192.168.1.10:5000/api/hidroponik")
-  String apiUrl = "http://127.0.0.1:5000/api/hidroponik";
+  String apiUrl = "http://lucky-snake299.play-mc.cc:25621/api/hidroponik";
 
   // Nilai Min / Max terukur dari sensor
   double? minTemp;
